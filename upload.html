@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload | Flame</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    input[type="file"], button {
+      margin: 10px;
+      padding: 10px;
+    }
+    form {
+      background: #1e1e1e;
+      display: inline-block;
+      padding: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📤 Upload a Video to Flame</h1>
+  <form action="https://fl-1-gqass.onrender.com/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="video" accept="video/*" required><br>
+    <button type="submit">Upload Video</button>
+  </form>
+  <p><a href="/">Back to Flame</a></p>
+</body>
+</html>
