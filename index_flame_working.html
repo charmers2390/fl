@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔥 Flame</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #ff704d; }
+    .nav, .search-bar { margin: 20px 0; }
+    .nav button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      background: #ff704d;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .search-bar input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      border: none;
+    }
+    .videos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .video {
+      background: #1e1e1e;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      width: 300px;
+    }
+    .video video {
+      width: 100%;
+      border-radius: 6px;
+    }
+    .video-title {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .upload-button {
+      margin-top: 30px;
+      background: #00b894;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #uploadForm {
+      margin-top: 40px;
+      display: none;
+    }
+    #uploadForm form {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Flame</h1>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by topic (e.g. gaming, dogs)">
+  </div>
+
+  <div class="nav">
+    <button onclick="filterBy('all')">All</button>
+    <button onclick="filterBy('shorts')">Shorts</button>
+    <button onclick="filterBy('trending')">Trending</button>
+  </div>
+
+  <div class="videos" id="videoContainer">Loading...</div>
+
+  <button class="upload-button" onclick="openUpload()">Upload a Video</button>
+
+  <div id="uploadForm">
+    <h2>Upload a Video</h2>
+    <form action="https://fl-1-gqass.onrender.com/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="video" accept="video/*" required><br><br>
+      <button type="submit">Upload Now</button>
+    </form>
+  </div>
+
+  <script>
+    const backendURL = "https://fl-1-gqass.onrender.com";
+    const container = document.getElementById('videoContainer');
+    let videoData = [];
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getFakeTopic(name) {
+      const keywords = ["gaming", "dogs", "music", "cats", "sports", "memes", "vlog"];
+      return keywords[randomInt(0, keywords.length - 1)];
+    }
+
+    function loadVideos() {
+      fetch(backendURL + "/videos")
+        .then(res => res.json())
+        .then(files => {
+          videoData = files
+            .filter(file => file.endsWith('.mp4'))
+            .map(file => {
+              return {
+                id: Math.random().toString(36).substring(2, 10),
+                file: file,
+                title: file.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' '),
+                duration: randomInt(30, 180),
+                views: randomInt(200, 5000),
+                topic: getFakeTopic(file)
+              };
+            });
+          renderVideos(videoData);
+        })
+        .catch(() => {
+          container.innerHTML = 'Failed to load videos 😢';
+        });
+    }
+
+    function renderVideos(list) {
+      container.innerHTML = '';
+      list.forEach(video => {
+        const div = document.createElement('div');
+        div.className = 'video';
+        div.innerHTML = `
+          <video src="${backendURL}/uploads/${video.file}" controls></video>
+          <div class="video-title">${video.title}</div>
+          <div>${video.views} views • ${video.duration}s • <i>${video.topic}</i></div>
+          <button onclick="openVideo('${video.id}')">Watch</button>
+        `;
+        div.dataset.duration = video.duration;
+        div.dataset.views = video.views;
+        div.dataset.topic = video.topic.toLowerCase();
+        container.appendChild(div);
+      });
+    }
+
+    function filterBy(type) {
+      let filtered = [...videoData];
+      if (type === 'shorts') {
+        filtered = filtered.filter(v => v.duration <= 60);
+      } else if (type === 'trending') {
+        filtered = filtered.filter(v => v.views > 1000);
+      }
+      renderVideos(filtered);
+    }
+
+    function openVideo(id) {
+      window.open("/video/" + id, "_blank");
+    }
+
+    function openUpload() {
+      const id = Math.random().toString(36).substring(2, 10);
+      history.pushState(null, '', '/upload/' + id);
+      document.getElementById('uploadForm').style.display = 'block';
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      const filtered = videoData.filter(v => v.topic.toLowerCase().includes(query));
+      renderVideos(filtered);
+    });
+
+    loadVideos();
+  </script>
+</body>
+</html>
